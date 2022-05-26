@@ -21,7 +21,7 @@ Resources:
   BlogPigeonFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: !Ref FunctionName
+      FunctionName: BlogPigeonFunction
       CodeUri: ./
       Handler: app.lambda_handler
       Runtime: python3.9
@@ -32,6 +32,16 @@ Resources:
         Variables: 
           SLACK_BOT_TOKEN: !Ref SlackBotToken
           SLACK_CHANNEL_ID: !Ref SlackChannelId
+  PermissionForEventsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref "BlogPigeonFunction"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - "ScheduledRule"
+          - "Arn"
   ScheduledRule: 
     Type: AWS::Events::Rule
     Properties: 
@@ -45,13 +55,3 @@ Resources:
               - "BlogPigeonFunction"
               - "Arn"
           Id: "TargetFunctionV1"
-  PermissionForEventsToInvokeLambda: 
-    Type: AWS::Lambda::Permission
-    Properties: 
-      FunctionName: !Ref "BlogPigeonFunction"
-      Action: "lambda:InvokeFunction"
-      Principal: "events.amazonaws.com"
-      SourceArn: 
-        Fn::GetAtt: 
-          - "ScheduledRule"
-          - "Arn"
