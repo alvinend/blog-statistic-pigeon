@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  alvinend's Blog Notification
+
+Parameters:
+  SlackBotToken:
+    Type: String
+    Default: ''
+    Description: Enter Slack Bot Token
+  SlackChannelId:
+    Type: String
+    Default: ''
+    Description: Enter Slack Channel
+
+Globals:
+  Function:
+    Timeout: 300
+
+Resources:
+  BlogPigeonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Ref FunctionName
+      CodeUri: ./
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      MemorySize: 512
+      Architectures:
+        - x86_64
+      Environment:
+        Variables: 
+          SLACK_BOT_TOKEN: !Ref SlackBotToken
+          SLACK_CHANNEL_ID: !Ref SlackChannelId
+  ScheduledRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "ScheduledRule"
+      ScheduleExpression: "cron(0 20 * * ? *)"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Fn::GetAtt: 
+              - "BlogPigeonFunction"
+              - "Arn"
+          Id: "TargetFunctionV1"
+  PermissionForEventsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref "BlogPigeonFunction"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - "ScheduledRule"
+          - "Arn"
