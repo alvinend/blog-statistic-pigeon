@@ -5,7 +5,7 @@ import ssl
 import requests 
 from slack_sdk import WebClient
 from bs4 import BeautifulSoup as bs 
-
+from datetime import date
 
 # Deactivate SSL for Slack Client
 ssl_context = ssl.create_default_context()
@@ -16,7 +16,7 @@ BLOG_URL = "https://blog.alvinend.tech"
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 SLACK_CHANNEL_ID = os.getenv('SLACK_CHANNEL_ID')
 
-def lambda_handler():
+def lambda_handler(event, context):
     # Get Website HTML 
     r = requests.get(BLOG_URL) 
 
@@ -46,14 +46,16 @@ def lambda_handler():
     # Init Slack Client
     client = WebClient(token=SLACK_BOT_TOKEN, ssl=ssl_context)
 
-    text ="blog.alvinend.tech Blog Statistic \n"
+    today = date.today()
+    text =f"*【{today.strftime('%Y/%m/%d')}】blog.alvinend.tech Blog Statistic*\n"
 
     for post in posts:
         text += "================================================================ \n"
-        text += f"{post['title']} \n"
-        text += f"Views: {post['views']} (+0) \n"
-        text += f"Reply Count: {post['replyCount']} (+0) \n"
-        text += f"Reaction Count: {post['reactionCount']} (+0) \n"
+        text += f"*{post['title']}* \n"
+        text += f"Views: {post['views']} *(+0)* \n"
+        text += f"Reply Count: {post['replyCount']} *(+0)* \n"
+        text += f"Reaction Count: {post['reactionCount']} *(+0)* \n"
+        text += "\n"
 
         
     # Send Message to Slack
